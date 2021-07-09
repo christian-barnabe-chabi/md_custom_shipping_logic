@@ -448,12 +448,66 @@ $area = [
 
 $cities = [
   "sn" => [
-    "dakar"       => "Dakar",
-    "thies"       => "Thies",
-    "saly"        =>  "Saly",
-    "mbour"       => "Mbour",
-    "saint louis" => "saint louis",
-    "autres"      => "Autres",
+    "dakar"       => [
+      "name" => "Dakar", 
+      "default" => [
+        "enabled" => true,
+        "limit_time" => "11:59PM",
+        "tax" => 1500,
+        "free_delivery" => true,
+        "condition" => "7000",
+        "express_delivery" => true,
+        "express_delivery_tax" => 3000,
+      ]
+    ],
+    "thies"       => [
+      "name" => "Thies",
+      "default" => [
+        "enabled" => true,
+        "limit_time" => "11:59PM",
+        "tax" => 1500,
+        "free_delivery" => true,
+        "condition" => "7000",
+        "express_delivery" => true,
+        "express_delivery_tax" => 3000,
+      ]
+    ],
+    "saly"        =>  [
+      "name" => "Saly", 
+      "default" => [
+        "enabled" => true,
+        "limit_time" => "11:59PM",
+        "tax" => 1500,
+        "free_delivery" => true,
+        "condition" => "7000",
+        "express_delivery" => true,
+        "express_delivery_tax" => 3000,
+      ]
+    ],
+    "mbour"       => [
+      "name" => "Mbour",
+      "default" => [
+        "enabled" => true,
+        "limit_time" => "11:59PM",
+        "tax" => 1500,
+        "free_delivery" => true,
+        "condition" => "7000",
+        "express_delivery" => true,
+        "express_delivery_tax" => 3000,
+      ]
+    ],
+    "saint louis" => [
+      "name" => "Saint louis",
+      "default" => [
+        "enabled" => true,
+        "limit_time" => "11:59PM",
+        "tax" => 1500,
+        "free_delivery" => true,
+        "condition" => "7000",
+        "express_delivery" => true,
+        "express_delivery_tax" => 3000,
+      ]
+    ],
   ],
 
   "ga" => [
@@ -475,34 +529,5 @@ $cities = [
 
   ],
 ];
-
-$conditions = [
-  "free1" => [
-    "today" => [
-      "enabled" => true,
-      "from" => "16:00PM",
-      "to" => "11:59PM",
-      "tax" => "2000",
-      "free_delivery" => true,
-      "condition" => "7000",
-    ],
-    "tomorrow" => [
-      "enabled" => true,
-      "from" => "16:00PM",
-      "to" => "11:59PM",
-      "tax" => "2000",
-      "free_delivery" => true,
-      "condition" => "7000",
-    ],
-    "express" => [
-      "enabled" => true,
-      "from" => "16:00PM",
-      "to" => "11:59PM",
-      "tax" => "2000",
-      "free_delivery" => true,
-      "condition" => "7000",
-    ],
-  ]
-]
 
 ?>

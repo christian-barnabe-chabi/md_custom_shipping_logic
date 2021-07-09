@@ -21,8 +21,8 @@ function md_add_area_checkout_field( $checkout ) {
   $select_options = $cities[$_SESSION['md_location']['slug']];
 
   $city_select_field_options = "<option value=''>".__( 'Select a city for delivery' )."</option>";
-  foreach ($select_options as $value => $text) {
-    $city_select_field_options .= "<option value='{$value}'>{$text}</option>";;
+  foreach ($select_options as $value => $cityData) {
+    $city_select_field_options .= "<option value='{$value}'>{$cityData['name']}</option>";;
   }
   
   echo <<<EOT
@@ -44,8 +44,10 @@ function md_add_area_checkout_field( $checkout ) {
   
 
   $delivery_data = json_encode($area);
-  $area_select_options = [];
+  $delivery_cities = json_encode($select_options);
   echo "<input type='hidden' value='{$delivery_data}' id='md_delivery_area_data'>";
+  echo "<input type='hidden' value='{$delivery_cities}' id='md_delivery_cities_data'>";
+  $area_select_options = [];
 
   // woocommerce_form_field( 'area_of_delivery', array(
   //     'type'          => 'select',
@@ -88,6 +90,7 @@ function md_delivery_area_mapper_script() {
         const area_of_delivery = $('#area_of_delivery');
         const city_of_delivery = $('#city_of_delivery');
         const md_delivery_area_data = $('#md_delivery_area_data');
+        const md_delivery_cities_data = $('#md_delivery_cities_data');
         const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
         const md_delivery_tax_fee = $("#md_delivery_tax_fee");
 
@@ -98,6 +101,8 @@ function md_delivery_area_mapper_script() {
         md_delivery_tax_fee_container.hide();
 
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
+        const deliveryCitiesData = JSON.parse(md_delivery_cities_data.val());
+
 
         city_of_delivery.on('change', (event)=>{
           const city = city_of_delivery.val();
@@ -105,6 +110,9 @@ function md_delivery_area_mapper_script() {
             areasOfSelectedCity = deliveryAreaData[city];
           } else {
             areasOfSelectedCity = null;
+            if(deliveryCitiesData.hasOwnProperty(city) && deliveryCitiesData[city].hasOwnProperty('default')) {
+              console.log(deliveryCitiesData[city].default);
+            }
           }
 
           if(!areasOfSelectedCity) {

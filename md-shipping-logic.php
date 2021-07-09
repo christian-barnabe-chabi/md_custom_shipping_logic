@@ -67,24 +67,35 @@ function md_add_area_checkout_field( $checkout ) {
   </div>
   EOT;
 
-  md_delivery_area_mapper();
+  echo <<<EOT
+  <div style="margin-bottom: 10px" id="md_delivery_tax_fee_container">
+    <p>Delivery Tax: <span id="md_delivery_tax_fee">2000</span></p>
+  </div>
+  EOT;
+
+  md_delivery_area_mapper_script();
 
 }
 
-function md_delivery_area_mapper() {
+function md_delivery_area_mapper_script() {
   echo <<<EOT
     <script>
     
       $(document).ready(() => {
 
         let areasOfSelectedCity = null;
+        let dateOfSelectedArea = null;
         const area_of_delivery = $('#area_of_delivery');
         const city_of_delivery = $('#city_of_delivery');
         const md_delivery_area_data = $('#md_delivery_area_data');
+        const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
+        const md_delivery_tax_fee = $("#md_delivery_tax_fee");
 
         // apply classes
         city_of_delivery.addClass('ui fluid dropdown');
         area_of_delivery.addClass('ui fluid dropdown');
+
+        md_delivery_tax_fee_container.hide();
 
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
 
@@ -118,7 +129,8 @@ function md_delivery_area_mapper() {
         area_of_delivery.on('change', (event) => {
           const area = area_of_delivery.val();
           if(areasOfSelectedCity.hasOwnProperty(area)) {
-            console.log(areasOfSelectedCity[area]);
+            dateOfSelectedArea = areasOfSelectedCity[area];
+            calculateDeliveryTax(dateOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
           }
         });
 
@@ -130,6 +142,11 @@ function md_delivery_area_mapper() {
         }
 
       });
+
+      function calculateDeliveryTax(dateOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container) {
+        md_delivery_tax_fee.text(dateOfSelectedArea.tax);
+        md_delivery_tax_fee_container.show();
+      }
 
       function fillAreaOfDelivery(areasOfSelectedCity, area_of_delivery) {
         let options = "<option value=''>Select an area for delivery</option>";

@@ -16,6 +16,8 @@ session_start();
 add_action('woocommerce_before_order_notes', 'md_add_area_checkout_field');
 function md_add_area_checkout_field( $checkout ) {
 
+  if(!is_checkout()) return;
+
   require_once 'includes/md-area-set.php';
 
   $select_options = $cities[$_SESSION['md_location']['slug']];
@@ -89,6 +91,7 @@ function md_add_area_checkout_field( $checkout ) {
 
 add_action( 'wp_footer', 'md_delivery_area_mapper_script', 50 );
 function md_delivery_area_mapper_script() {
+  if(!is_checkout()) return;
   $order_total = WC()->cart->get_cart_contents_total();
 
   if ( is_checkout() ){
@@ -233,7 +236,6 @@ function md_delivery_area_mapper_script() {
               // can anyway get delivered if express_enabled
               const expressDeliveryIsEnabledAndHasTaxSet = dataOfSelectedArea.express_delivery && dataOfSelectedArea.express_delivery_tax;
               if(expressDeliveryIsEnabledAndHasTaxSet && isInExpressDeliveryTime && hasReachedMinimumPriceCondition) { 
-                console.log("Express delivery is on");
                 express_delivery_field_container.fadeIn();
 
                 express_delivery_field.on('change', (event)=>{
@@ -274,7 +276,7 @@ function md_delivery_area_mapper_script() {
         let options = "<option value=''>Select an area for delivery</option>";
         options += "<option value='other'>Autre</option>";
         for(let area in areasOfSelectedCity) {
-          options += "<option value='"+area+"'>"+area+"</option>";
+          options += "<option value='"+area+"'>"+areasOfSelectedCity[area].zone_name+"</option>";
         }
         area_of_delivery.html(options);
       }

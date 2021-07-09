@@ -19,6 +19,10 @@ function md_add_area_checkout_field( $checkout ) {
   require_once 'includes/md-area-set.php';
 
   $select_options = $cities[$_SESSION['md_location']['slug']];
+  $delivery_data = json_encode($area);
+  $delivery_cities = json_encode($select_options);
+  echo "<input type='hidden' value='{$delivery_data}' id='md_delivery_area_data'>";
+  echo "<input type='hidden' value='{$delivery_cities}' id='md_delivery_cities_data'>";
 
   $city_select_field_options = "<option value=''>".__( 'Select a city for delivery' )."</option>";
   foreach ($select_options as $value => $cityData) {
@@ -42,11 +46,6 @@ function md_add_area_checkout_field( $checkout ) {
   // ),);
 
   
-
-  $delivery_data = json_encode($area);
-  $delivery_cities = json_encode($select_options);
-  echo "<input type='hidden' value='{$delivery_data}' id='md_delivery_area_data'>";
-  echo "<input type='hidden' value='{$delivery_cities}' id='md_delivery_cities_data'>";
   $area_select_options = [];
 
   // woocommerce_form_field( 'area_of_delivery', array(
@@ -62,7 +61,7 @@ function md_add_area_checkout_field( $checkout ) {
   }
 
   echo <<<EOT
-  <div style="margin-bottom: 10px">
+  <div style="margin-bottom: 10px;">
     <select class="ui fluid search dropdown" id="area_of_delivery" name="area_of_delivery" required>
       $area_select_field_options
     </select>
@@ -98,7 +97,7 @@ function md_delivery_area_mapper_script() {
         city_of_delivery.addClass('ui fluid dropdown');
         area_of_delivery.addClass('ui fluid dropdown');
 
-        md_delivery_tax_fee_container.hide();
+        md_delivery_tax_fee_container.fadeOut();
 
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
         const deliveryCitiesData = JSON.parse(md_delivery_cities_data.val());
@@ -108,17 +107,18 @@ function md_delivery_area_mapper_script() {
           const city = city_of_delivery.val();
           if(deliveryAreaData.hasOwnProperty(city)) {
             areasOfSelectedCity = deliveryAreaData[city];
+            dataOfSelectedArea = null;
           } else {
             areasOfSelectedCity = null;
             dataOfSelectedArea = deliveryCitiesData[city].default || null;
-            calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
           }
+          calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
 
           if(!areasOfSelectedCity) {
-            area_of_delivery.parent().hide();
+            area_of_delivery.parent().fadeOut();
             area_of_delivery.empty();
           } else {
-            area_of_delivery.parent().show();
+            area_of_delivery.parent().fadeIn();
             fillAreaOfDelivery(areasOfSelectedCity, area_of_delivery);
           }
         });
@@ -143,17 +143,39 @@ function md_delivery_area_mapper_script() {
         $('.ui.dropdown#area_of_delivery').dropdown({forceSelection: false,});
         $('.ui.dropdown#city_of_delivery').dropdown({forceSelection: false,});
         if(areasOfSelectedCity === null) {
-          area_of_delivery.parent().hide();
+          area_of_delivery.parent().fadeOut();
         }
 
       });
 
       function calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container) {
-        md_delivery_tax_fee.text(dataOfSelectedArea.tax);
         if(dataOfSelectedArea == null) {
-          md_delivery_tax_fee_container.hide();
+          md_delivery_tax_fee_container.fadeOut();
         } else {
-          md_delivery_tax_fee_container.show();
+          let delivery_fee = dataOfSelectedArea.tax;
+          const deliveryTempDate = new Date();
+          const currentDate = new Date();
+          Object.freeze(currentDate);
+          const regex = /(\d{1,2}):(\d{1,2})/gm;
+          const matches = regex.exec(dataOfSelectedArea.limit_time);
+
+          if(matches) {
+            const [,hours, minutes,,,,] = matches;
+            deliveryTempDate.setHours(hours, minutes, 0, 0);
+
+            if((currentDate < deliveryTempDate) && dataOfSelectedArea.free_delivery) { // free delvery
+              delivery_fee = 0;
+              console.log("Youpi! Free delivery");
+            } else { // 
+              console.log(dataOfSelectedArea);
+            }
+
+          } else {
+            delivery_fee = 0;
+          }
+          
+          md_delivery_tax_fee.text(delivery_fee || 0);
+          md_delivery_tax_fee_container.fadeIn();
         }
       }
 

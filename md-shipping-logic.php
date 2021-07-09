@@ -67,6 +67,15 @@ function md_add_area_checkout_field( $checkout ) {
     </select>
   </div>
   EOT;
+  
+  echo <<<EOT
+  <div style="margin-bottom: 10px;">
+    <div class="ui checkbox" id="express_delivery_field_container">
+      <input type="checkbox" id="express_delivery_field" name="express_delivery_field">
+      <label>Express delivery</label>
+    </div>
+  </div>
+  EOT;
 
   echo <<<EOT
   <div style="margin-bottom: 10px" id="md_delivery_tax_fee_container">
@@ -79,6 +88,7 @@ function md_add_area_checkout_field( $checkout ) {
 }
 
 function md_delivery_area_mapper_script() {
+  $order_total = WC()->cart->get_cart_contents_total();
   echo <<<EOT
     <script>
     
@@ -92,12 +102,15 @@ function md_delivery_area_mapper_script() {
         const md_delivery_cities_data = $('#md_delivery_cities_data');
         const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
         const md_delivery_tax_fee = $("#md_delivery_tax_fee");
+        const express_delivery_field_container = $("#express_delivery_field_container");
+        const express_delivery_field = $("#express_delivery_field");
 
         // apply classes
         city_of_delivery.addClass('ui fluid dropdown');
         area_of_delivery.addClass('ui fluid dropdown');
 
         md_delivery_tax_fee_container.fadeOut();
+        express_delivery_field_container.fadeOut();
 
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
         const deliveryCitiesData = JSON.parse(md_delivery_cities_data.val());
@@ -112,7 +125,7 @@ function md_delivery_area_mapper_script() {
             areasOfSelectedCity = null;
             dataOfSelectedArea = deliveryCitiesData[city].default || null;
           }
-          calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
+          calculateDeliveryTax(dataOfSelectedArea);
 
           if(!areasOfSelectedCity) {
             area_of_delivery.parent().fadeOut();
@@ -136,8 +149,9 @@ function md_delivery_area_mapper_script() {
         area_of_delivery.on('change', (event) => {
           const area = area_of_delivery.val();
           dataOfSelectedArea = areasOfSelectedCity[area] || null;
-          calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
+          calculateDeliveryTax(dataOfSelectedArea);
         });
+
 
         // with dropdown
         $('.ui.dropdown#area_of_delivery').dropdown({forceSelection: false,});
@@ -148,9 +162,17 @@ function md_delivery_area_mapper_script() {
 
       });
 
-      function calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container) {
+      function calculateDeliveryTax(dataOfSelectedArea) {
+
+        const orderTotal = {$order_total};
+        const express_delivery_field_container = $("#express_delivery_field_container");
+        const express_delivery_field = $("#express_delivery_field");
+        const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
+        const md_delivery_tax_fee = $("#md_delivery_tax_fee");
+
         if(dataOfSelectedArea == null) {
           md_delivery_tax_fee_container.fadeOut();
+          express_delivery_field_container.fadeOut();
         } else {
           let delivery_fee = dataOfSelectedArea.tax;
           const deliveryTempDate = new Date();
@@ -158,27 +180,86 @@ function md_delivery_area_mapper_script() {
           Object.freeze(currentDate);
           const regex = /(\d{1,2}):(\d{1,2})/gm;
           const matches = regex.exec(dataOfSelectedArea.limit_time);
+          
 
           if(matches) {
             const [,hours, minutes,,,,] = matches;
             deliveryTempDate.setHours(hours, minutes, 0, 0);
 
-            if((currentDate < deliveryTempDate) && dataOfSelectedArea.free_delivery) { // free delvery
+            const hasReachedMinimumPriceCondition = orderTotal >= dataOfSelectedArea.free_delivery_condition;
+            const hasFreeDelivery = dataOfSelectedArea.free_delivery && hasReachedMinimumPriceCondition;
+            const isInTime = currentDate < deliveryTempDate;
+
+            if(hasFreeDelivery && isInTime) { // free delvery
               delivery_fee = 0;
               console.log("Youpi! Free delivery");
-            } else { // 
-              console.log(dataOfSelectedArea);
+            } else {
+
+              if(hasFreeDelivery) { // can get delivery for free next day
+                console.log("You can get delivery for free next delivery day");
+              }
+
+              // next delivery date
+              // if next week day is sunday => day off 
+              nextDeliveryDate = new Date();
+              nextDeliveryDate.setHours(0, 0, 0);
+              if(currentDate.toDateString().substr(0, 3).toLocaleLowerCase() == 'sat') {
+                // 86400000
+                nextDeliveryDate.setTime(nextDeliveryDate.getTime()+2*86400000);
+                console.log("you'll be delivered on monday")
+              } else {
+                nextDeliveryDate.setTime(nextDeliveryDate.getTime()+86400000);
+              }
+              console.log("next deliveray Date: "+ nextDeliveryDate.toDateString());
+
+
+              const regex2 = /(\d{1,2}):(\d{1,2})/gm;
+              const expressDeliveryTempDate = new Date();
+              const expressDeliveryLimitTimeRegexMatch = regex2.exec(dataOfSelectedArea.express_delivery_limit_time);
+              let isInExpressDeliveryTime = false;
+              if(expressDeliveryLimitTimeRegexMatch) {
+                const [,expressDeliveryHours, expressDeliveryMinutes,,,,] = expressDeliveryLimitTimeRegexMatch;
+                expressDeliveryTempDate.setHours(expressDeliveryHours, expressDeliveryMinutes, 0, 0);
+                isInExpressDeliveryTime = currentDate < expressDeliveryTempDate;
+              }
+
+
+              // can anyway get delivered if express_enabled
+              const expressDeliveryIsEnabledAndHasTaxSet = dataOfSelectedArea.express_delivery && dataOfSelectedArea.express_delivery_tax;
+              if(expressDeliveryIsEnabledAndHasTaxSet && isInExpressDeliveryTime && hasReachedMinimumPriceCondition) { 
+                console.log("Express delivery is on");
+                express_delivery_field_container.fadeIn();
+
+                express_delivery_field.on('change', (event)=>{
+                  if(express_delivery_field.prop('checked')) {
+                    setDeliveryTaxFees(dataOfSelectedArea.express_delivery_tax);
+                  } else {
+                    setDeliveryTaxFees(delivery_fee);
+                  }
+                })
+              }
             }
 
           } else {
             delivery_fee = 0;
           }
           
-          md_delivery_tax_fee.text(delivery_fee || 0);
-          md_delivery_tax_fee_container.fadeIn();
+          // md_delivery_tax_fee.text(delivery_fee || 0);
+          // md_delivery_tax_fee_container.fadeIn();
+          setDeliveryTaxFees(delivery_fee);
         }
+
       }
 
+      function setDeliveryTaxFees(delivery_fee) {
+
+        const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
+        const md_delivery_tax_fee = $("#md_delivery_tax_fee");
+
+        md_delivery_tax_fee.text(delivery_fee || 0);
+        md_delivery_tax_fee_container.fadeIn();
+      }
+      
       function fillAreaOfDelivery(areasOfSelectedCity, area_of_delivery) {
         let options = "<option value=''>Select an area for delivery</option>";
         options += "<option value='other'>Autre</option>";

@@ -110,9 +110,8 @@ function md_delivery_area_mapper_script() {
             areasOfSelectedCity = deliveryAreaData[city];
           } else {
             areasOfSelectedCity = null;
-            if(deliveryCitiesData.hasOwnProperty(city) && deliveryCitiesData[city].hasOwnProperty('default')) {
-              console.log(deliveryCitiesData[city].default);
-            }
+            dataOfSelectedArea = deliveryCitiesData[city].default || null;
+            calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
           }
 
           if(!areasOfSelectedCity) {
@@ -136,10 +135,8 @@ function md_delivery_area_mapper_script() {
 
         area_of_delivery.on('change', (event) => {
           const area = area_of_delivery.val();
-          if(areasOfSelectedCity.hasOwnProperty(area)) {
-            dateOfSelectedArea = areasOfSelectedCity[area];
-            calculateDeliveryTax(dateOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
-          }
+          dataOfSelectedArea = areasOfSelectedCity[area] || null;
+          calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container);
         });
 
         // with dropdown
@@ -151,9 +148,13 @@ function md_delivery_area_mapper_script() {
 
       });
 
-      function calculateDeliveryTax(dateOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container) {
-        md_delivery_tax_fee.text(dateOfSelectedArea.tax);
-        md_delivery_tax_fee_container.show();
+      function calculateDeliveryTax(dataOfSelectedArea, md_delivery_tax_fee, md_delivery_tax_fee_container) {
+        md_delivery_tax_fee.text(dataOfSelectedArea.tax);
+        if(dataOfSelectedArea == null) {
+          md_delivery_tax_fee_container.hide();
+        } else {
+          md_delivery_tax_fee_container.show();
+        }
       }
 
       function fillAreaOfDelivery(areasOfSelectedCity, area_of_delivery) {

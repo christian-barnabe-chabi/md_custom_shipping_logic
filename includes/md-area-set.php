@@ -11,7 +11,7 @@ $area = [
     // free delivery
     "Almadies" => [
       "enabled" => true,
-      "limit_time" => "11:59PM",
+      "limit_time" => "16:00PM",
       "tax" => 1500,
       "free_delivery" => true,
       "condition" => "7000",

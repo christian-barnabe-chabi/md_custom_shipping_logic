@@ -1,0 +1,13 @@
+.mdf-varation-select-title {
+  font-size: larger;
+}
+
+#mdf-size-select-container, #mdf-color-select-container {
+  margin-bottom: 20px;
+}
+
+#mdf-size-select-form, #mdf-color-select-form {
+  height: 40px !important;
+  min-width: 200px !important;
+  margin-top: 10px !important;
+}

@@ -23,6 +23,7 @@ function md_add_area_checkout_field( $checkout ) {
   $delivery_cities = json_encode($select_options);
   echo "<input type='hidden' value='{$delivery_data}' id='md_delivery_area_data'>";
   echo "<input type='hidden' value='{$delivery_cities}' id='md_delivery_cities_data'>";
+  echo "<input type='hidden' value=0 id='md_delivery_tax' name='md_delivery_tax'>";
 
   $city_select_field_options = "<option value=''>".__( 'Select a city for delivery' )."</option>";
   foreach ($select_options as $value => $cityData) {
@@ -31,7 +32,7 @@ function md_add_area_checkout_field( $checkout ) {
   
   echo <<<EOT
   <div style="margin-bottom: 15px">
-    <select class="ui fluid search dropdown" id="city_of_delivery" name="city_of_delivery" required>
+    <select class="ui fluid search dropdown" id="city_of_delivery" name="md_city_of_delivery" required>
       $city_select_field_options
     </select>
   </div>
@@ -48,11 +49,12 @@ function md_add_area_checkout_field( $checkout ) {
   
   $area_select_options = [];
 
-  // woocommerce_form_field( 'area_of_delivery', array(
-  //     'type'          => 'select',
-  //     'class'         => array( 'md_select', 'ui fluid search dropdown', ),
-  //     'label'         => __( 'Delivery options' ),
-  //     'options'       => $area_select_options
+  // woocommerce_form_field( 'md_area_of_delivery', array(
+  //     'type'          => 'hidden',
+  // ),);
+  
+  // woocommerce_form_field( 'md_final_delivery_tax', array(
+  //     'type'          => 'hidden',
   // ),);
 
   $area_select_field_options = "<option value=''>".__( 'Select an area for delivery', )."</option>";
@@ -62,7 +64,7 @@ function md_add_area_checkout_field( $checkout ) {
 
   echo <<<EOT
   <div style="margin-bottom: 10px;">
-    <select class="ui fluid search dropdown" id="area_of_delivery" name="area_of_delivery" required>
+    <select class="ui fluid search dropdown" id="area_of_delivery" name="md_area_of_delivery" required>
       $area_select_field_options
     </select>
   </div>
@@ -71,7 +73,7 @@ function md_add_area_checkout_field( $checkout ) {
   echo <<<EOT
   <div style="margin-bottom: 10px;">
     <div class="ui checkbox" id="express_delivery_field_container">
-      <input type="checkbox" id="express_delivery_field" name="express_delivery_field">
+      <input type="checkbox" id="express_delivery_field">
       <label>Express delivery</label>
     </div>
   </div>
@@ -83,12 +85,16 @@ function md_add_area_checkout_field( $checkout ) {
   </div>
   EOT;
 
-  md_delivery_area_mapper_script();
-
 }
 
+add_action( 'wp_footer', 'md_delivery_area_mapper_script', 50 );
 function md_delivery_area_mapper_script() {
   $order_total = WC()->cart->get_cart_contents_total();
+
+  if ( is_checkout() ){
+
+    
+  }
   echo <<<EOT
     <script>
     
@@ -255,9 +261,13 @@ function md_delivery_area_mapper_script() {
 
         const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
         const md_delivery_tax_fee = $("#md_delivery_tax_fee");
+        const md_delivery_tax = $("#md_delivery_tax");
 
+        md_delivery_tax.val(delivery_fee);
         md_delivery_tax_fee.text(delivery_fee || 0);
         md_delivery_tax_fee_container.fadeIn();
+
+        jQuery(document.body).trigger("update_checkout");
       }
       
       function fillAreaOfDelivery(areasOfSelectedCity, area_of_delivery) {
@@ -268,8 +278,44 @@ function md_delivery_area_mapper_script() {
         }
         area_of_delivery.html(options);
       }
+
+      $('body').on('updated_checkout', function(){
+        // Just for testing (To be removed)
+        console.log('"updated_checkout" event, restore selected option value: ');
+    });
     </script>
   EOT;
 }
+
+add_action('woocommerce_cart_calculate_fees', function() {
+	if (is_admin() && !defined('DOING_AJAX')) {
+		return;
+	}
+  
+  if ( isset( $_POST['post_data'] ) ) {
+    parse_str( $_POST['post_data'], $post_data );
+  } else {
+    $post_data = $_POST; // fallback for final checkout (non-ajax)
+  }
+
+  $md_delivery_tax = $post_data['md_delivery_tax'] ?? null;
+
+	if ($md_delivery_tax) {
+		WC()->cart->add_fee(__('Delivery Fee', 'txtdomain'), $md_delivery_tax);
+	} else {
+		WC()->cart->add_fee(__('Delivery Fee', 'txtdomain'), 0);
+  }
+});
+
+// add_action('woocommerce_checkout_process', 'my_custom_checkout_field_process');
+// function my_custom_checkout_field_process() {
+//     // Check if set, if its not set add an error.
+//     if ( ! $_POST['md_delivery_tax'] ) {
+//       wc_add_notice( __( 'Please enter something into this new shiny field.' ), 'error' );
+//     } else {
+//       wc_add_notice( __( 'md_delivery_tax set. Youpi' ), 'error' );
+//     }
+// }
+
 
 ?>

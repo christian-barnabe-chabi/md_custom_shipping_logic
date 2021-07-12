@@ -34,6 +34,7 @@ function md_add_area_checkout_field( $checkout ) {
   
   echo <<<EOT
   <div style="margin-bottom: 15px">
+    <label for="md_extra_address">Select an city for delivery <span style="color:red">*</span></label>
     <select class="ui fluid search dropdown" id="city_of_delivery" name="md_city_of_delivery" required>
       $city_select_field_options
     </select>
@@ -46,10 +47,18 @@ function md_add_area_checkout_field( $checkout ) {
   $area_select_field_options = "<option value=''>".__( 'Select an area for delivery', )."</option>";
 
   echo <<<EOT
-  <div style="margin-bottom: 10px;">
+  <div style="margin-bottom: 10px;" id="area_of_delivery_container">
+    <label for="md_extra_address">Select an area for delivery <span style="color:red">*</span></label>
     <select class="ui fluid search dropdown" id="area_of_delivery" name="md_area_of_delivery" required>
       $area_select_field_options
     </select>
+  </div>
+  EOT;
+
+  echo <<<EOT
+  <div style="margin-bottom: 10px" id="md_extra_address_container">
+    <label for="md_extra_address">Additional address Information <span style="color:red">*</span></label>
+    <input type="text" id="md_extra_address" class="iu input">
   </div>
   EOT;
   
@@ -86,6 +95,7 @@ function md_delivery_area_mapper_script() {
 
         let areasOfSelectedCity = null;
         let dateOfSelectedArea = null;
+        const area_of_delivery_container = $('#area_of_delivery_container');
         const area_of_delivery = $('#area_of_delivery');
         const city_of_delivery = $('#city_of_delivery');
         const md_delivery_area_data = $('#md_delivery_area_data');
@@ -94,42 +104,59 @@ function md_delivery_area_mapper_script() {
         const express_delivery_field_container = $("#express_delivery_field_container");
         const express_delivery_field = $("#express_delivery_field");
         const md_delivery_tax = $("#md_delivery_tax");
+        const md_extra_address_container = $("#md_extra_address_container");
+        const md_extra_address = $("#md_extra_address");
 
         // apply classes
         city_of_delivery.addClass('ui fluid dropdown');
         area_of_delivery.addClass('ui fluid dropdown');
 
+        md_extra_address_container.fadeOut();
         express_delivery_field_container.fadeOut();
 
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
         const deliveryCitiesData = JSON.parse(md_delivery_cities_data.val());
-
+        let selectedCityHasAreas = false;
+        let city;
 
         city_of_delivery.on('change', (event)=>{
           express_delivery_field.prop("checked", false);
-          const city = city_of_delivery.val();
-          if(deliveryAreaData.hasOwnProperty(city)) {
+          city = city_of_delivery.val();
+          selectedCityHasAreas = deliveryAreaData.hasOwnProperty(city);
+          if(selectedCityHasAreas) {
             areasOfSelectedCity = deliveryAreaData[city];
             dataOfSelectedArea = null;
+            md_extra_address_container.fadeOut();
           } else {
             areasOfSelectedCity = null;
             dataOfSelectedArea = deliveryCitiesData[city].default || null;
+
+            // specific rules for libreville
+            if(city.toLowerCase() == "libreville") {
+              md_extra_address_container.fadeIn();
+            }
           }
           calculateDeliveryTax(dataOfSelectedArea);
 
           if(!areasOfSelectedCity) {
-            area_of_delivery.parent().fadeOut();
+            // area_of_delivery.parent().fadeOut();
+            area_of_delivery_container.fadeOut();
             area_of_delivery.empty();
           } else {
-            area_of_delivery.parent().fadeIn();
+            area_of_delivery_container.fadeIn();
             fillAreaOfDelivery(areasOfSelectedCity, area_of_delivery);
           }
         });
 
         $(document).on('click', '#place_order', (event) => {
-          if(city_of_delivery.val() == '' || md_delivery_tax.val() == -1) {
+          if(city_of_delivery.val() == '') {
             event.preventDefault();
-          } else {
+          } else if(md_delivery_tax.val() == -1) {
+            event.preventDefault();
+          } else if( (!selectedCityHasAreas && md_extra_address.val() == '' && city.toLowerCase() == "libreville") ) {
+            event.preventDefault();
+          }
+          else {
             if(deliveryAreaData.hasOwnProperty(city_of_delivery.val()) && area_of_delivery.val() == '') {
               event.preventDefault();
             }
@@ -152,7 +179,8 @@ function md_delivery_area_mapper_script() {
         $('.ui.dropdown#area_of_delivery').dropdown({forceSelection: false,});
         $('.ui.dropdown#city_of_delivery').dropdown({forceSelection: false,});
         if(areasOfSelectedCity === null) {
-          area_of_delivery.parent().fadeOut();
+          // area_of_delivery.parent().fadeOut();
+          area_of_delivery_container.fadeOut();
         }
 
       });
@@ -321,6 +349,10 @@ add_action('woocommerce_cart_calculate_fees', function() {
 
 // add_action('woocommerce_checkout_process', 'my_custom_checkout_field_process');
 // function my_custom_checkout_field_process() {
+
+//     if(isset( $_SESSION['md_cart_mapped'])) {
+//       echo "<pre>". var_export($_SESSION['md_cart_mapped'], true) ."<pre>";
+//     }
 //     // Check if set, if its not set add an error.
 //     if ( ! $_POST['md_delivery_tax'] ) {
 //       wc_add_notice( __( 'Please enter something into this new shiny field.' ), 'error' );

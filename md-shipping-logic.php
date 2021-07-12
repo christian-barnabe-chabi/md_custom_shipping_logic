@@ -16,6 +16,8 @@ session_start();
 add_action('woocommerce_before_order_notes', 'md_add_area_checkout_field');
 function md_add_area_checkout_field( $checkout ) {
 
+  if(!is_checkout()) return;
+
   require_once 'includes/md-area-set.php';
 
   $select_options = $cities[$_SESSION['md_location']['slug']];
@@ -38,29 +40,10 @@ function md_add_area_checkout_field( $checkout ) {
   </div>
   EOT;
 
-  // echo '<h3>'.__('Area Delivery').'</h3>';
-  // woocommerce_form_field( 'city_of_delivery', array(
-  //     'type'          => 'select',
-  //     'class'         => array('ui fluid search dropdown' ),
-  //     'label'         => __( 'Delivery options' ),
-  //     'options'       => $select_options
-  // ),);
-
   
   $area_select_options = [];
 
-  // woocommerce_form_field( 'md_area_of_delivery', array(
-  //     'type'          => 'hidden',
-  // ),);
-  
-  // woocommerce_form_field( 'md_final_delivery_tax', array(
-  //     'type'          => 'hidden',
-  // ),);
-
   $area_select_field_options = "<option value=''>".__( 'Select an area for delivery', )."</option>";
-  foreach ($area_select_options as $value => $text) {
-    $area_select_field_options .= "<option value='{$value}'>{$text}</option>";
-  }
 
   echo <<<EOT
   <div style="margin-bottom: 10px;">
@@ -74,7 +57,7 @@ function md_add_area_checkout_field( $checkout ) {
   <div style="margin-bottom: 10px;">
     <div class="ui checkbox" id="express_delivery_field_container">
       <input type="checkbox" id="express_delivery_field">
-      <label>Express delivery</label>
+      <label for="express_delivery_field">Express delivery</label>
     </div>
   </div>
   EOT;
@@ -85,10 +68,17 @@ function md_add_area_checkout_field( $checkout ) {
   </div>
   EOT;
 
+  echo <<<EOT
+  <div style="margin-bottom: 10px" id="md_delivery_message_container">
+    <p id="md_delivery_message"></p>
+  </div>
+  EOT;
+
 }
 
 add_action( 'wp_footer', 'md_delivery_area_mapper_script', 50 );
 function md_delivery_area_mapper_script() {
+  if(!is_checkout()) return;
   $order_total = WC()->cart->get_cart_contents_total();
 
   if ( is_checkout() ){
@@ -110,6 +100,7 @@ function md_delivery_area_mapper_script() {
         const md_delivery_tax_fee = $("#md_delivery_tax_fee");
         const express_delivery_field_container = $("#express_delivery_field_container");
         const express_delivery_field = $("#express_delivery_field");
+        const md_delivery_tax = $("#md_delivery_tax");
 
         // apply classes
         city_of_delivery.addClass('ui fluid dropdown');
@@ -118,11 +109,13 @@ function md_delivery_area_mapper_script() {
         md_delivery_tax_fee_container.fadeOut();
         express_delivery_field_container.fadeOut();
 
+        // console.log(md_delivery_area_data.val());
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
         const deliveryCitiesData = JSON.parse(md_delivery_cities_data.val());
 
 
         city_of_delivery.on('change', (event)=>{
+          express_delivery_field.prop("checked", false);
           const city = city_of_delivery.val();
           if(deliveryAreaData.hasOwnProperty(city)) {
             areasOfSelectedCity = deliveryAreaData[city];
@@ -143,7 +136,7 @@ function md_delivery_area_mapper_script() {
         });
 
         $(document).on('click', '#place_order', (event) => {
-          if(city_of_delivery.val() == '') {
+          if(city_of_delivery.val() == '' || md_delivery_tax.val() == -1) {
             event.preventDefault();
           } else {
             if(deliveryAreaData.hasOwnProperty(city_of_delivery.val()) && area_of_delivery.val() == '') {
@@ -153,8 +146,13 @@ function md_delivery_area_mapper_script() {
         });
 
         area_of_delivery.on('change', (event) => {
+          express_delivery_field.prop("checked", false);
           const area = area_of_delivery.val();
           dataOfSelectedArea = areasOfSelectedCity[area] || null;
+          calculateDeliveryTax(dataOfSelectedArea);
+        });
+        
+        express_delivery_field.on('change', (event)=>{
           calculateDeliveryTax(dataOfSelectedArea);
         });
 
@@ -169,54 +167,71 @@ function md_delivery_area_mapper_script() {
       });
 
       function calculateDeliveryTax(dataOfSelectedArea) {
-
+        mdWipeMessage();
         const orderTotal = {$order_total};
         const express_delivery_field_container = $("#express_delivery_field_container");
         const express_delivery_field = $("#express_delivery_field");
         const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
-        const md_delivery_tax_fee = $("#md_delivery_tax_fee");
+        const md_delivery_tax_fee = $("#md_delivery_tax_fee"); 
+        const md_delivery_tax = $("#md_delivery_tax");
 
         if(dataOfSelectedArea == null) {
           md_delivery_tax_fee_container.fadeOut();
           express_delivery_field_container.fadeOut();
         } else {
+
           let delivery_fee = dataOfSelectedArea.tax;
           const deliveryTempDate = new Date();
           const currentDate = new Date();
           Object.freeze(currentDate);
           const regex = /(\d{1,2}):(\d{1,2})/gm;
           const matches = regex.exec(dataOfSelectedArea.limit_time);
+          const hasReachedMinimumPriceCondition = orderTotal >= dataOfSelectedArea.free_delivery_condition;
+          const userWinsFreeDelivery = (dataOfSelectedArea.free_delivery == true || dataOfSelectedArea.free_delivery == 'true') && hasReachedMinimumPriceCondition;
+          const deliveryEnabled = dataOfSelectedArea.enabled == true || dataOfSelectedArea.enabled == 'true';
+          const hasExpressDelivery = dataOfSelectedArea.express_delivery == true || dataOfSelectedArea.express_delivery == 'true';
+
+          // delivery enabled if enabled is false and order is greater than delivery condition
+          if(deliveryEnabled == false) {
+            if(hasReachedMinimumPriceCondition == false) {
+              // setDeliveryTaxFees(0);
+              md_delivery_tax_fee_container.fadeOut();
+              md_delivery_tax.val(-1);
+              mdUpdateCheckout();
+
+              mdShowMessagePrepend("Nous ne livrons pas dans les quartiers éloignés les commandes en dessous de 7000. Pour être livré ajoutez des articles à votre commandes ou modifiez le quartier de réception", "red");
+
+              return;
+            }
+          }
           
 
           if(matches) {
             const [,hours, minutes,,,,] = matches;
             deliveryTempDate.setHours(hours, minutes, 0, 0);
-
-            const hasReachedMinimumPriceCondition = orderTotal >= dataOfSelectedArea.free_delivery_condition;
-            const hasFreeDelivery = dataOfSelectedArea.free_delivery && hasReachedMinimumPriceCondition;
             const isInTime = currentDate < deliveryTempDate;
 
-            if(hasFreeDelivery && isInTime) { // free delvery
+            if(userWinsFreeDelivery && isInTime) { // free delvery
               delivery_fee = 0;
-              console.log("Youpi! Free delivery");
+              mdShowMessage("Youpi! Free delivery");
             } else {
 
-              if(hasFreeDelivery) { // can get delivery for free next day
-                console.log("You can get delivery for free next delivery day");
+              if(userWinsFreeDelivery) { // can get delivery for free next day
+                mdShowMessage("You can get delivery for free next delivery day");
               }
 
               // next delivery date
-              // if next week day is sunday => day off 
+              // if next day is sunday => day off 
               nextDeliveryDate = new Date();
               nextDeliveryDate.setHours(0, 0, 0);
               if(currentDate.toDateString().substr(0, 3).toLocaleLowerCase() == 'sat') {
                 // 86400000
                 nextDeliveryDate.setTime(nextDeliveryDate.getTime()+2*86400000);
-                console.log("you'll be delivered on monday")
+                mdShowMessage("you'll be delivered on next monday")
               } else {
                 nextDeliveryDate.setTime(nextDeliveryDate.getTime()+86400000);
               }
-              console.log("next deliveray Date: "+ nextDeliveryDate.toDateString());
+              mdShowMessage("next deliveray Date: "+ nextDeliveryDate.toDateString());
 
 
               const regex2 = /(\d{1,2}):(\d{1,2})/gm;
@@ -231,27 +246,21 @@ function md_delivery_area_mapper_script() {
 
 
               // can anyway get delivered if express_enabled
-              const expressDeliveryIsEnabledAndHasTaxSet = dataOfSelectedArea.express_delivery && dataOfSelectedArea.express_delivery_tax;
+              const expressDeliveryIsEnabledAndHasTaxSet = hasExpressDelivery && dataOfSelectedArea.express_delivery_tax;
               if(expressDeliveryIsEnabledAndHasTaxSet && isInExpressDeliveryTime && hasReachedMinimumPriceCondition) { 
-                console.log("Express delivery is on");
                 express_delivery_field_container.fadeIn();
 
-                express_delivery_field.on('change', (event)=>{
-                  if(express_delivery_field.prop('checked')) {
-                    setDeliveryTaxFees(dataOfSelectedArea.express_delivery_tax);
-                  } else {
-                    setDeliveryTaxFees(delivery_fee);
-                  }
-                })
+                if(express_delivery_field.prop('checked')) {
+                  setDeliveryTaxFees(dataOfSelectedArea.express_delivery_tax);
+                  return;
+                }
               }
             }
 
           } else {
             delivery_fee = 0;
           }
-          
-          // md_delivery_tax_fee.text(delivery_fee || 0);
-          // md_delivery_tax_fee_container.fadeIn();
+
           setDeliveryTaxFees(delivery_fee);
         }
 
@@ -259,14 +268,20 @@ function md_delivery_area_mapper_script() {
 
       function setDeliveryTaxFees(delivery_fee) {
 
-        const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
-        const md_delivery_tax_fee = $("#md_delivery_tax_fee");
+        // const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
+        // const md_delivery_tax_fee = $("#md_delivery_tax_fee");
         const md_delivery_tax = $("#md_delivery_tax");
-
+        
         md_delivery_tax.val(delivery_fee);
-        md_delivery_tax_fee.text(delivery_fee || 0);
-        md_delivery_tax_fee_container.fadeIn();
+        // md_delivery_tax_fee.text(delivery_fee || 0);
+        // md_delivery_tax_fee_container.fadeIn();
 
+        mdShowMessagePrepend(`Delivery tax: \${delivery_fee}`, "orange");
+        
+        mdUpdateCheckout();
+      }
+
+      function mdUpdateCheckout() {
         jQuery(document.body).trigger("update_checkout");
       }
       
@@ -274,15 +289,35 @@ function md_delivery_area_mapper_script() {
         let options = "<option value=''>Select an area for delivery</option>";
         options += "<option value='other'>Autre</option>";
         for(let area in areasOfSelectedCity) {
-          options += "<option value='"+area+"'>"+area+"</option>";
+          options += "<option value='"+area+"'>"+areasOfSelectedCity[area].zone_name+"</option>";
         }
         area_of_delivery.html(options);
       }
 
-      $('body').on('updated_checkout', function(){
-        // Just for testing (To be removed)
-        console.log('"updated_checkout" event, restore selected option value: ');
-    });
+      
+      function mdShowMessage(message, color="black") {
+        const md_delivery_message_container = $('#md_delivery_message_container');
+        const mdDeliveryMessage = $(`<p style='color:\${color}'>\${message}</p>`);
+
+        md_delivery_message_container.append(mdDeliveryMessage);
+
+        md_delivery_message_container.fadeIn();
+      }
+      
+      function mdShowMessagePrepend(message, color="black") {
+        const md_delivery_message_container = $('#md_delivery_message_container');
+        const mdDeliveryMessage = $(`<p style='color:\${color}'>\${message}</p>`);
+
+        md_delivery_message_container.prepend(mdDeliveryMessage);
+
+        md_delivery_message_container.fadeIn();
+      }
+
+      function mdWipeMessage() {
+        const md_delivery_message_container = $('#md_delivery_message_container');
+        md_delivery_message_container.empty();
+      }
+
     </script>
   EOT;
 }

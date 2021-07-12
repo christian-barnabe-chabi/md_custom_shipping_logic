@@ -5,581 +5,171 @@
   16:00 -> will be delivered on the next day (same free_delivery_conditions)
   Express (same day): > 16:00 - 18:30 && order > 7000 + express_tax
 */
+require_once('SimpleXLSX.php');
 
-$area = [
-  "dakar" => [
-    // free delivery
-    "Almadies" => [
-      "enabled" => true,
-      "limit_time" => "16:00PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Ngor" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Yoff" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Yoff-virage" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "grand yoff " => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "sicap liberté" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Guele tapee " => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "colobane " => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Point E" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Medina" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Fass" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Grand Dakar" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Fann Amitie" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Mermoz" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 3000,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Sacre Cœur" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Patte D oie" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Plateau" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Hlm /parcelle" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
+$area = [];
+$cities = [];
+const AREA_SHEET_NO = 1;
+const ZONE_SHEET_NO = 0;
+$delivery_excel_file = WP_PLUGIN_DIR.'/md-shipping-logic/includes/delivery.xlsx';
+if ( $xlsx = SimpleXLSX::parse($delivery_excel_file) ) {
 
-    // never free
-    "parcelle unite1 in 7" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Guediaway" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Pikine" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Hann marinas" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Bel air" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Dalifort" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Camberene" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "thiaroye" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "keur Mbaye fall" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Mbao" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Keur Massar" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Rufisque" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
+  $area_sheet = $xlsx->rows(AREA_SHEET_NO);
+  for($i=1; $i < count($area_sheet); $i++) {
+    $row = $area_sheet[$i];
+    if(empty($row[0])) continue;
+    [
+    $city,
+    $zone,
+    $zone_name,
+    $enabled,
+    $limit_time,
+    $tax,
+    $free_delivery,
+    $free_delivery_condition,
+    $express_delivery,
+    $express_delivery_tax,
+    $express_delivery_limit_time,
+    ] = $row;
+    
+    $area[$city][$zone] = [
+      "zone_name" => str_replace("'", "-", $zone_name),
+      "enabled" => $enabled,
+      "limit_time" =>     $limit_time,
+      "tax" =>     $tax,
+      "free_delivery" =>     $free_delivery,
+      "free_delivery_condition" =>     $free_delivery_condition,
+      "express_delivery" =>     $express_delivery,
+      "express_delivery_tax" =>     $express_delivery_tax,
+      "express_delivery_limit_time" =>     $express_delivery_limit_time,
+    ];
+  }
 
-  ],
+  $cities_sheet = $xlsx->rows(ZONE_SHEET_NO);
+  for($i=1; $i < count($cities_sheet); $i++) {
+    $row = $cities_sheet[$i];
+    if(empty($row[0])) continue;
+    [
+      $country,
+      $city,
+      $city_name,
+      $enabled,
+      $limit_time,
+      $tax,
+      $free_delivery,
+      $free_delivery_condition,
+      $express_delivery,
+      $express_delivery_tax,
+      $express_delivery_limit_time,
+    ] = $row;
+    
+    $cities[$country][$city]["name"] = str_replace("'", "-", $city_name);
+    $cities[$country][$city]["default"] = [
+      "enabled" => $enabled,
+      "limit_time" =>     $limit_time,
+      "tax" =>     $tax,
+      "free_delivery" =>     $free_delivery,
+      "free_delivery_condition" =>     $free_delivery_condition,
+      "express_delivery" =>     $express_delivery,
+      "express_delivery_tax" =>     $express_delivery_tax,
+      "express_delivery_limit_time" =>     $express_delivery_limit_time,
+    ];
+  }
 
-  "abidjan" => [
-    // free on morning
-    "youpougon" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Koumassi" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Riviera" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Faya"=> [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Plateau" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Angre" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Marcory" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Treicheville" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Port Bouet" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-
-    // never free
-    "Port bouet Anani" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Youpougon PK17" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Bassam" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Abobo PK 18" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "ABOBO belle ville " => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Bingerville" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Agnama" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
-    "Vridi cité" => [
-      "enabled" => true,
-      "limit_time" => "11:59PM",
-      "tax" => 1500,
-      "free_delivery" => true,
-      "free_delivery_condition" => "7000",
-      "express_delivery" => true,
-      "express_delivery_tax" => 3000,
-      "express_delivery_limit_time" => "18:00",
-    ],
+} else {
+	echo SimpleXLSX::parseError();
+}
 
 
-  ]
-];
+// $cities = [
+//   "sn" => [
+//     "dakar"       => [
+//       "name" => "Dakar", 
+//       "default" => [
+//         "enabled" => true,
+//         "limit_time" => "11:59PM",
+//         "tax" => 1500,
+//         "free_delivery" => true,
+//         "free_delivery_condition" => "7000",
+//         "express_delivery" => true,
+//         "express_delivery_tax" => 3000,
+//         "express_delivery_limit_time" => "18:00",
+//       ]
+//     ],
+//     "thies"       => [
+//       "name" => "Thies",
+//       "default" => [
+//         "enabled" => true,
+//         "limit_time" => "11:59PM",
+//         "tax" => 3500,
+//         "free_delivery" => true,
+//         "free_delivery_condition" => "7000",
+//         "express_delivery" => true,
+//         "express_delivery_tax" => 3000,
+//         "express_delivery_limit_time" => "18:00",
+//       ]
+//     ],
+//     "saly"        =>  [
+//       "name" => "Saly", 
+//       "default" => [
+//         "enabled" => true,
+//         "limit_time" => "11:59PM",
+//         "tax" => 1500,
+//         "free_delivery" => true,
+//         "free_delivery_condition" => "7000",
+//         "express_delivery" => true,
+//         "express_delivery_tax" => 3000,
+//         "express_delivery_limit_time" => "18:00",
+//       ]
+//     ],
+//     "mbour"       => [
+//       "name" => "Mbour",
+//       "default" => [
+//         "enabled" => true,
+//         "limit_time" => "11:59PM",
+//         "tax" => 1500,
+//         "free_delivery" => true,
+//         "free_delivery_condition" => "7000",
+//         "express_delivery" => true,
+//         "express_delivery_tax" => 3000,
+//         "express_delivery_limit_time" => "18:00",
+//       ]
+//     ],
+//     "saint louis" => [
+//       "name" => "Saint louis",
+//       "default" => [
+//         "enabled" => true,
+//         "limit_time" => "11:59PM",
+//         "tax" => 1500,
+//         "free_delivery" => true,
+//         "free_delivery_condition" => "7000",
+//         "express_delivery" => true,
+//         "express_delivery_tax" => 3000,
+//         "express_delivery_limit_time" => "18:00",
+//       ]
+//     ],
+//   ],
 
-$cities = [
-  "sn" => [
-    "dakar"       => [
-      "name" => "Dakar", 
-      "default" => [
-        "enabled" => true,
-        "limit_time" => "11:59PM",
-        "tax" => 1500,
-        "free_delivery" => true,
-        "free_delivery_condition" => "7000",
-        "express_delivery" => true,
-        "express_delivery_tax" => 3000,
-        "express_delivery_limit_time" => "18:00",
-      ]
-    ],
-    "thies"       => [
-      "name" => "Thies",
-      "default" => [
-        "enabled" => true,
-        "limit_time" => "11:59PM",
-        "tax" => 3500,
-        "free_delivery" => true,
-        "free_delivery_condition" => "7000",
-        "express_delivery" => true,
-        "express_delivery_tax" => 3000,
-        "express_delivery_limit_time" => "18:00",
-      ]
-    ],
-    "saly"        =>  [
-      "name" => "Saly", 
-      "default" => [
-        "enabled" => true,
-        "limit_time" => "11:59PM",
-        "tax" => 1500,
-        "free_delivery" => true,
-        "free_delivery_condition" => "7000",
-        "express_delivery" => true,
-        "express_delivery_tax" => 3000,
-        "express_delivery_limit_time" => "18:00",
-      ]
-    ],
-    "mbour"       => [
-      "name" => "Mbour",
-      "default" => [
-        "enabled" => true,
-        "limit_time" => "11:59PM",
-        "tax" => 1500,
-        "free_delivery" => true,
-        "free_delivery_condition" => "7000",
-        "express_delivery" => true,
-        "express_delivery_tax" => 3000,
-        "express_delivery_limit_time" => "18:00",
-      ]
-    ],
-    "saint louis" => [
-      "name" => "Saint louis",
-      "default" => [
-        "enabled" => true,
-        "limit_time" => "11:59PM",
-        "tax" => 1500,
-        "free_delivery" => true,
-        "free_delivery_condition" => "7000",
-        "express_delivery" => true,
-        "express_delivery_tax" => 3000,
-        "express_delivery_limit_time" => "18:00",
-      ]
-    ],
-  ],
+//   "ga" => [
+//     "name" => "Gabon",
+//   ],
 
-  "ga" => [
-    "name" => "Gabon",
-  ],
+//   "gh" => [
+//     "name" => "Ghana",
+//   ],
 
-  "gh" => [
-    "name" => "Ghana",
-  ],
+//   "ci" => [
+//     "abidjan"     => [
+//       "name" => "Abidjan",
+//     ],
+//     "adiame"      => "Adiame",
+//     "remblais"    => "Remblais ",
+//     "bietry"      => "bietry",
+//     "cite CICOGI" => "Cite CICOGI",
+//     "rIVIERA 3"   => "RIVIERA 3",
+//     "autres"      => "Autres",
 
-  "ci" => [
-    "abidjan"     => "Abidjan",
-    "adiame"      => "Adiame",
-    "remblais"    => "Remblais ",
-    "bietry"      => "bietry",
-    "cite CICOGI" => "Cite CICOGI",
-    "rIVIERA 3"   => "RIVIERA 3",
-    "autres"      => "Autres",
-
-  ],
-];
+//   ],
+// ];
 
 ?>

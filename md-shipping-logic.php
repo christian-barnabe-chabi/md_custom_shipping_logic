@@ -63,12 +63,6 @@ function md_add_area_checkout_field( $checkout ) {
   EOT;
 
   echo <<<EOT
-  <div style="margin-bottom: 10px" id="md_delivery_tax_fee_container">
-    <p>Delivery Tax: <span id="md_delivery_tax_fee">2000</span></p>
-  </div>
-  EOT;
-
-  echo <<<EOT
   <div style="margin-bottom: 10px" id="md_delivery_message_container">
     <p id="md_delivery_message"></p>
   </div>
@@ -96,7 +90,6 @@ function md_delivery_area_mapper_script() {
         const city_of_delivery = $('#city_of_delivery');
         const md_delivery_area_data = $('#md_delivery_area_data');
         const md_delivery_cities_data = $('#md_delivery_cities_data');
-        const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
         const md_delivery_tax_fee = $("#md_delivery_tax_fee");
         const express_delivery_field_container = $("#express_delivery_field_container");
         const express_delivery_field = $("#express_delivery_field");
@@ -106,10 +99,8 @@ function md_delivery_area_mapper_script() {
         city_of_delivery.addClass('ui fluid dropdown');
         area_of_delivery.addClass('ui fluid dropdown');
 
-        md_delivery_tax_fee_container.fadeOut();
         express_delivery_field_container.fadeOut();
 
-        // console.log(md_delivery_area_data.val());
         const deliveryAreaData = JSON.parse(md_delivery_area_data.val());
         const deliveryCitiesData = JSON.parse(md_delivery_cities_data.val());
 
@@ -171,12 +162,10 @@ function md_delivery_area_mapper_script() {
         const orderTotal = {$order_total};
         const express_delivery_field_container = $("#express_delivery_field_container");
         const express_delivery_field = $("#express_delivery_field");
-        const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
         const md_delivery_tax_fee = $("#md_delivery_tax_fee"); 
         const md_delivery_tax = $("#md_delivery_tax");
 
         if(dataOfSelectedArea == null) {
-          md_delivery_tax_fee_container.fadeOut();
           express_delivery_field_container.fadeOut();
         } else {
 
@@ -194,8 +183,6 @@ function md_delivery_area_mapper_script() {
           // delivery enabled if enabled is false and order is greater than delivery condition
           if(deliveryEnabled == false) {
             if(hasReachedMinimumPriceCondition == false) {
-              // setDeliveryTaxFees(0);
-              md_delivery_tax_fee_container.fadeOut();
               md_delivery_tax.val(-1);
               mdUpdateCheckout();
 
@@ -225,7 +212,7 @@ function md_delivery_area_mapper_script() {
               nextDeliveryDate = new Date();
               nextDeliveryDate.setHours(0, 0, 0);
               if(currentDate.toDateString().substr(0, 3).toLocaleLowerCase() == 'sat') {
-                // 86400000
+                // 86400000 => 01 days
                 nextDeliveryDate.setTime(nextDeliveryDate.getTime()+2*86400000);
                 mdShowMessage("you'll be delivered on next monday")
               } else {
@@ -267,17 +254,9 @@ function md_delivery_area_mapper_script() {
       }
 
       function setDeliveryTaxFees(delivery_fee) {
-
-        // const md_delivery_tax_fee_container = $("#md_delivery_tax_fee_container");
-        // const md_delivery_tax_fee = $("#md_delivery_tax_fee");
         const md_delivery_tax = $("#md_delivery_tax");
-        
         md_delivery_tax.val(delivery_fee);
-        // md_delivery_tax_fee.text(delivery_fee || 0);
-        // md_delivery_tax_fee_container.fadeIn();
-
         mdShowMessagePrepend(`Delivery tax: \${delivery_fee}`, "orange");
-        
         mdUpdateCheckout();
       }
 
@@ -307,9 +286,7 @@ function md_delivery_area_mapper_script() {
       function mdShowMessagePrepend(message, color="black") {
         const md_delivery_message_container = $('#md_delivery_message_container');
         const mdDeliveryMessage = $(`<p style='color:\${color}'>\${message}</p>`);
-
         md_delivery_message_container.prepend(mdDeliveryMessage);
-
         md_delivery_message_container.fadeIn();
       }
 
